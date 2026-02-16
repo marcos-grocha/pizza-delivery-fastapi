@@ -11,13 +11,13 @@ class UsuarioSchema(BaseModel):
     class Config:
         from_attributes = True
 
-# class PedidoSchema(BaseModel):
-#     usuario: int
-#     status: Optional[str] = "PENDENTE"
-#     preco: float
+class PedidoSchema(BaseModel):
+    usuario: int
+    status: Optional[str] = "PENDENTE"
+    preco: float
 
-#     class Config:
-#         from_attributes = True
+    class Config:
+        from_attributes = True
 
 # class ItemPedidoSchema(BaseModel):
 #     quantidade: int
