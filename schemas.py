@@ -1,0 +1,30 @@
+from pydantic import BaseModel
+from typing import Optional
+
+class UsuarioSchema(BaseModel):
+    nome: str
+    email: str
+    senha: str
+    ativo: Optional[bool] = True
+    admin: Optional[bool] = False
+
+    class Config:
+        from_attributes = True
+
+# class PedidoSchema(BaseModel):
+#     usuario: int
+#     status: Optional[str] = "PENDENTE"
+#     preco: float
+
+#     class Config:
+#         from_attributes = True
+
+# class ItemPedidoSchema(BaseModel):
+#     quantidade: int
+#     sabor: str
+#     tamanho: str
+#     preco_unitario: float
+#     pedido: int
+
+#     class Config:
+#         from_attributes = True
