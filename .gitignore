@@ -1,0 +1,17 @@
+# Python
+*.py[cod]
+venv
+__pycache__
+*.env
+.venv
+
+# Pycharm
+.idea
+
+# Log files
+*.log
+
+# Applications
+*.app
+*.exe
+*.war
