@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models import Pedido, Usuario
-from schemas import PedidoSchema
+from models import Pedido, Usuario, ItemPedido
+from schemas import PedidoSchema, ItemPedidoSchema
 from dependencies import pegar_sessao, verificar_token
 from sqlalchemy.orm import Session
 
@@ -41,3 +41,30 @@ async def listar_pedidos(session: Session = Depends(pegar_sessao), usuario: Usua
     
     pedidos = session.query(Pedido).all()
     return {"pedidos": pedidos}
+
+@order_router.post("/pedido/adicionar-tem/{id_pedido}")
+async def adicionar_item_pedido(id_pedido: int, 
+                                item_pedido_schema: ItemPedidoSchema, 
+                                session: Session = Depends(pegar_sessao), 
+                                usuario: Usuario = Depends(verificar_token)):
+    
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    if not usuario.admin and pedido.usuario != usuario:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para adicionar itens a este pedido")
+    
+    item_pedido = ItemPedido(quantidade=item_pedido_schema.quantidade,
+                            sabor=item_pedido_schema.sabor,
+                            tamanho=item_pedido_schema.tamanho,
+                            preco_unitario=item_pedido_schema.preco_unitario,
+                            pedido=id_pedido)
+    session.add(item_pedido)
+    
+    pedido.calcular_preco()
+    session.commit()
+    return {
+        "mensagem": "Você adicionou um item ao pedido",
+        "item_id": item_pedido.id,
+        "preco_total": pedido.preco
+        }
