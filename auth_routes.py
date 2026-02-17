@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
 from dependencies import pegar_sessao, verificar_token
 from jose import jwt
@@ -59,6 +60,19 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sess
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
+            "token_type": "Bearer"
+        }
+    
+@auth_router.post("/login-oauth")
+async def login(login_oauth: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(pegar_sessao)):
+    usuario = autenticar_usuario(login_oauth.username, login_oauth.password, session)
+
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Usuário não encontrado ou credenciais inválidas")
+    else:
+        access_token = criar_token(usuario.id)
+        return {
+            "access_token": access_token,
             "token_type": "Bearer"
         }
     

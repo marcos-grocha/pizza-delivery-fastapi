@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWSError
 from main import SECRET_KEY, ALGORITHM
 from models import db, Usuario
@@ -12,7 +13,8 @@ def pegar_sessao():
     finally:
         session.close()
 
-def verificar_token(token, session: Session = Depends(pegar_sessao)):
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/login-oauth")
+def verificar_token(token: str = Depends(oauth2_schema), session: Session = Depends(pegar_sessao)):
     try:
         dic_info = jwt.decode(token, SECRET_KEY, ALGORITHM)
         id_usuario = dic_info.get("sub")
