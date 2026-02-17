@@ -1,23 +1,38 @@
 from fastapi import APIRouter, Depends, HTTPException
-from dependencies import pegar_sessao
+from datetime import datetime, timedelta, timezone
+from dependencies import pegar_sessao, verificar_token
+from jose import jwt
+from main import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from models import Usuario
-from schemas import UsuarioSchema
+from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
 
-# Determina a rota à uma variável + pré caminho do endpoint + marcador para o /docs
+# Determina a rota
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Determina a próxima combinação do endpoint
+def criar_token(id_usuario):
+    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    dic_info = { "sub": str(id_usuario), "exp": data_expiracao }
+    jwt_codificado = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
+    return jwt_codificado
+
+def autenticar_usuario(email, senha, session):
+    usuario = session.query(Usuario).filter(Usuario.email==email).first()
+    if not usuario:
+        return False
+    elif usuario.senha != senha:
+        return False
+    else:
+        return usuario
+
 @auth_router.get("/")
 async def autenticar():
-    """
-    Docstring: Essa é a rota padrão para autenticar
-    """
     return {"mensagem": "Você acessou a rota de autenticação", "autenticação": False}
 
 @auth_router.post("/criar_conta")
 async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(pegar_sessao)):
     usuario = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
+
     if usuario:
         raise HTTPException(status_code=400, detail="Usuário já existe")
     else:
@@ -31,3 +46,26 @@ async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(
         session.add(novo_usuario)
         session.commit()
         return {"mensagem": f"Usuário criado com sucesso! {usuario_schema.email}"}
+    
+@auth_router.post("/login")
+async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sessao)):
+    usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
+
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Usuário não encontrado ou credenciais inválidas")
+    else:
+        access_token = criar_token(usuario.id)
+        refresh_token = criar_token(usuario.id)
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "Bearer"
+        }
+    
+@auth_router.get("/refresh")
+async def use_refresh_token(usuario: Usuario = Depends(verificar_token)):
+    access_token = criar_token(usuario.id)
+    return {
+        "access_token": access_token,
+        "token_type": "Bearer"
+    }

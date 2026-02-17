@@ -1,6 +1,11 @@
-# --- Inicia o Framework ---
 from fastapi import FastAPI
 
+# --- Configurações ---
+ALGORITHM = "HS256"
+SECRET_KEY = "secret"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# --- Inicia o Framework ---
 app = FastAPI()
 
 # --- Define e chama as rotas ---
