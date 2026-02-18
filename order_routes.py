@@ -26,7 +26,7 @@ async def criar_pedido(pedido_schema: PedidoSchema, session: Session = Depends(p
 async def cancelar_pedido(id_pedido: int, 
                         session: Session = Depends(pegar_sessao), 
                         usuario: Usuario = Depends(verificar_token)):
-                        
+
     pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
@@ -41,7 +41,7 @@ async def cancelar_pedido(id_pedido: int,
 async def finalizar_pedido(id_pedido: int, 
                         session: Session = Depends(pegar_sessao), 
                         usuario: Usuario = Depends(verificar_token)):
-                        
+
     pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
@@ -107,3 +107,16 @@ async def remover_item_pedido(id_item_pedido: int,
         "pedido": pedido.id,
         "preco_total": pedido.preco
         }
+
+@order_router.get("/pedido/{id_pedido}")
+async def vizualizar_pedido(id_pedido: int, 
+                        session: Session = Depends(pegar_sessao), 
+                        usuario: Usuario = Depends(verificar_token)):
+    
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    if not usuario.admin and pedido.usuario != usuario.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para visualizar este pedido")
+    
+    return {"quantidade_itens_pedido": len(pedido.itens), "pedido": pedido}
