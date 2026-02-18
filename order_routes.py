@@ -42,7 +42,7 @@ async def listar_pedidos(session: Session = Depends(pegar_sessao), usuario: Usua
     pedidos = session.query(Pedido).all()
     return {"pedidos": pedidos}
 
-@order_router.post("/pedido/adicionar-tem/{id_pedido}")
+@order_router.post("/pedido/adicionar-item/{id_pedido}")
 async def adicionar_item_pedido(id_pedido: int, 
                                 item_pedido_schema: ItemPedidoSchema, 
                                 session: Session = Depends(pegar_sessao), 
@@ -66,5 +66,26 @@ async def adicionar_item_pedido(id_pedido: int,
     return {
         "mensagem": "Você adicionou um item ao pedido",
         "item_id": item_pedido.id,
+        "preco_total": pedido.preco
+        }
+
+@order_router.post("/pedido/remover-item/{id_item_pedido}")
+async def remover_item_pedido(id_item_pedido: int, 
+                                session: Session = Depends(pegar_sessao), 
+                                usuario: Usuario = Depends(verificar_token)):
+    
+    item_pedido = session.query(ItemPedido).filter(ItemPedido.id==id_item_pedido).first()
+    pedido = session.query(Pedido).filter(Pedido.id==item_pedido.pedido).first()
+    if not item_pedido:
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+    if not usuario.admin and pedido.usuario != usuario:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para remover o item")
+    
+    session.delete(item_pedido)
+    pedido.calcular_preco()
+    session.commit()
+    return {
+        "mensagem": "Você removeu o item do pedido",
+        "pedido": pedido.id,
         "preco_total": pedido.preco
         }
