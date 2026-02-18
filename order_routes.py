@@ -23,7 +23,10 @@ async def criar_pedido(pedido_schema: PedidoSchema, session: Session = Depends(p
     return {"mensagem": "Você criou um pedido"}
 
 @order_router.get("/pedido/cancelar/{id_pedido}")
-async def cancelar_pedido(id_pedido: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+async def cancelar_pedido(id_pedido: int, 
+                        session: Session = Depends(pegar_sessao), 
+                        usuario: Usuario = Depends(verificar_token)):
+                        
     pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
@@ -32,7 +35,22 @@ async def cancelar_pedido(id_pedido: int, session: Session = Depends(pegar_sessa
 
     pedido.status = "CANCELADO"
     session.commit()
-    return {"mensagem": f"Você cancelou o pedido número {pedido.id}", "pedido": pedido}
+    return {"mensagem": f"Você CANCELOU o pedido de número {pedido.id}", "pedido": pedido}
+
+@order_router.get("/pedido/finalizar/{id_pedido}")
+async def finalizar_pedido(id_pedido: int, 
+                        session: Session = Depends(pegar_sessao), 
+                        usuario: Usuario = Depends(verificar_token)):
+                        
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    if not usuario.admin and pedido.usuario != usuario.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para finalizar este pedido")
+
+    pedido.status = "FINALIZADO"
+    session.commit()
+    return {"mensagem": f"Você FINALIZOU o pedido de número {pedido.id}", "pedido": pedido}
 
 @order_router.get("/listar")
 async def listar_pedidos(session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
