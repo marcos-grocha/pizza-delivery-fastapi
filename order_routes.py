@@ -60,6 +60,11 @@ async def listar_pedidos(session: Session = Depends(pegar_sessao), usuario: Usua
     pedidos = session.query(Pedido).all()
     return {"pedidos": pedidos}
 
+@order_router.get("/listar/pedido-usuario")
+async def listar_pedidos_usuario(session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedidos = session.query(Pedido).filter(Pedido.usuario==usuario.id).all()
+    return {"pedidos": pedidos}
+
 @order_router.post("/pedido/adicionar-item/{id_pedido}")
 async def adicionar_item_pedido(id_pedido: int, 
                                 item_pedido_schema: ItemPedidoSchema, 
