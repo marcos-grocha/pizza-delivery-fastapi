@@ -10,9 +10,7 @@ python -m venv .venv
 ```
 
 ### Instale as dependências dentro do ambiente:
-```
-pip install ...
-```
+```pip install ...```
 - fastapi
 - uvicorn
 - sqlalchemy
@@ -29,9 +27,7 @@ uvicorn main:app --reload
 ```
 
 ### Consulte a documentação da API gerado pelo FastAPI em:
-```
-http://localhost:8000/docs
-```
+```http://localhost:8000/docs```
 
 --- 
 
@@ -44,3 +40,10 @@ http://localhost:8000/docs
 
 ### Roda migração
 ```alembic upgrade head```
+
+--- 
+
+# Endpoints
+<img width="1867" height="451" alt="image" src="https://github.com/user-attachments/assets/58c67f58-ea94-4e4e-95d9-28f3e472ea70" />
+<img width="1858" height="715" alt="image" src="https://github.com/user-attachments/assets/fa1cf4ac-bfb0-4271-b25a-ef725e96d4a0" />
+
